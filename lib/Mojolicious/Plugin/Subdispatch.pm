@@ -30,13 +30,14 @@ sub _subdispatch {
 }
 
 # Mojo::UserAgent like interface
+# we don't really need post_form, but Mojo::UA uses it.
 {
     no strict 'refs';
     for my $name (qw(DELETE GET HEAD POST POST_FORM PUT)) {
         *{__PACKAGE__ . '::' . lc($name)} = sub {
             my $self = shift;
             my $method = $name eq 'POST_FORM' ? 'POST' : $name;
-            return $self->_subdispatch($method => @_);
+            return $self->_subdispatch($method => @_)->res;
         };
     }
 }
