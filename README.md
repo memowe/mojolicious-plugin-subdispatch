@@ -20,7 +20,8 @@ to use it, please let me know!
 TODO
 ----
 
-`post_form` with a POST data hash
+`post_form` with a POST data hash. Since this seems complicated, maybe it's best
+to use `app->ua->post_form` instead.
 
 Author
 ------
