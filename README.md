@@ -13,15 +13,18 @@ the method name and pass the same arguments as you would do for `url_for`:
 
     my $html = app->subdispatch->get('route_name', foo => 'bar')->res->body;
 
+To build a post request with data, append the data hash at the end:
+
+    app->subdispatch->post('route_name', foo => 'bar', {i => 'has data'})
+
+You can also use the sub dispatch helper to do it directly:
+
+    app->subdispatch(GET  => 'route_name', foo => 'bar')
+    app->subdispatch(POST => 'route_name', foo => 'bar', {i => 'has data'})
+
 This is an early version and may change without warning. I'll use it to create
 static HTML pages from a Mojolicious blog, but if you find another good way
 to use it, please let me know!
-
-TODO
-----
-
-`post_form` with a POST data hash. Since this seems complicated, maybe it's best
-to use `app->ua->post_form` instead.
 
 Author
 ------

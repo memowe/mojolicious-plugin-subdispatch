@@ -1,20 +1,27 @@
 package Mojolicious::Plugin::Subdispatch;
 use Mojo::Base 'Mojolicious::Plugin';
 
+use Mojo::UserAgent::Transactor;
+
 our $VERSION = '0.01';
 
-has app => sub { die 'not registered!' };
+has app         => sub { die 'not registered!' };
+has transactor  => sub { Mojo::UserAgent::Transactor->new };
 
 sub _subdispatch {
-    my ($self, $method, @url_args) = @_;
+    my ($self, $method, @args) = @_;
 
-    # build url
-    my $url = $self->app->url_for(@url_args);
+    # extract post data
+    my $post_data = (uc $method eq 'POST' and ref $args[-1] eq 'HASH') ?
+        pop @args : undef;
+
+    # build request url
+    my $url = $self->app->url_for(@args);
 
     # build transaction
-    my $tx = $self->app->build_tx;
-    $tx->req->method(uc $method);
-    $tx->req->url($url);
+    my $tx = $post_data ?
+        $self->transactor->form($url, $post_data)
+        : $self->transactor->tx($method, $url);
 
     # dispatch
     $self->app->handler($tx);
@@ -25,10 +32,11 @@ sub _subdispatch {
 # Mojo::UserAgent like interface
 {
     no strict 'refs';
-    for my $name (qw(DELETE GET HEAD POST PUT)) {
+    for my $name (qw(DELETE GET HEAD POST POST_FORM PUT)) {
         *{__PACKAGE__ . '::' . lc($name)} = sub {
             my $self = shift;
-            return $self->_subdispatch($name => @_);
+            my $method = $name eq 'POST_FORM' ? 'POST' : $name;
+            return $self->_subdispatch($method => @_);
         };
     }
 }

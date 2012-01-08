@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 37;
+use Test::More tests => 57;
 use Mojolicious::Lite;
 use Mojo::DOM;
 use FindBin '$Bin';
@@ -30,6 +30,7 @@ is($tx->res->code, 200, 'right response status');
 my $resd = Mojo::DOM->new($tx->res->body);
 is($resd->at('title')->text, 'yum', 'right title');
 is($resd->at('h1')->text, 'This is PUT/foo!', 'right headline');
+is($resd->find('p')->size, 0, 'no paragraphs');
 
 # DELETE /x/bar/y (delete)
 $tx = app->subdispatch->delete('acshun', thing => 'bar');
@@ -40,6 +41,7 @@ is($tx->res->code, 200, 'right response status');
 $resd = Mojo::DOM->new($tx->res->body);
 is($resd->at('title')->text, 'yum', 'right title');
 is($resd->at('h1')->text, 'This is DELETE/bar!', 'right headline');
+is($resd->find('p')->size, 0, 'no paragraphs');
 
 # GET /x/baz/y (get)
 $tx = app->subdispatch->get('acshun', thing => 'baz');
@@ -50,6 +52,7 @@ is($tx->res->code, 200, 'right response status');
 $resd = Mojo::DOM->new($tx->res->body);
 is($resd->at('title')->text, 'yum', 'right title');
 is($resd->at('h1')->text, 'This is GET/baz!', 'right headline');
+is($resd->find('p')->size, 0, 'no paragraphs');
 
 # HEAD /x/quux/y (head)
 $tx = app->subdispatch->head('acshun', thing => 'quux');
@@ -60,6 +63,7 @@ is($tx->res->code, 200, 'right response status');
 $resd = Mojo::DOM->new($tx->res->body);
 is($resd->at('title')->text, 'yum', 'right title');
 is($resd->at('h1')->text, 'This is HEAD/quux!', 'right headline');
+is($resd->find('p')->size, 0, 'no paragraphs');
 
 # POST /x/om/y (post)
 $tx = app->subdispatch->post('acshun', thing => 'om');
@@ -70,6 +74,7 @@ is($tx->res->code, 200, 'right response status');
 $resd = Mojo::DOM->new($tx->res->body);
 is($resd->at('title')->text, 'yum', 'right title');
 is($resd->at('h1')->text, 'This is POST/om!', 'right headline');
+is($resd->find('p')->size, 0, 'no paragraphs');
 
 # PUT /x/nom/y (put)
 $tx = app->subdispatch->put('acshun', thing => 'nom');
@@ -80,12 +85,38 @@ is($tx->res->code, 200, 'right response status');
 $resd = Mojo::DOM->new($tx->res->body);
 is($resd->at('title')->text, 'yum', 'right title');
 is($resd->at('h1')->text, 'This is PUT/nom!', 'right headline');
+is($resd->find('p')->size, 0, 'no paragraphs');
+
+# POST FORM /x/noy/y (subdispatch)
+$tx = app->subdispatch(POST => 'acshun', thing => 'noy', {hogo => 'prenuut'});
+isa_ok($tx, 'Mojo::Transaction', 'subdispatch return value');
+is($tx->req->method, 'POST', 'right method');
+is($tx->req->url->path, '/x/noy/y', 'right url');
+is($tx->res->code, 200, 'right response status');
+$resd = Mojo::DOM->new($tx->res->body);
+is($resd->at('title')->text, 'yum', 'right title');
+is($resd->at('h1')->text, 'This is POST/noy!', 'right headline');
+is($resd->at('p')->text, 'hogo: prenuut', 'right post data');
+
+# POST FORM /x/nox/y (post_form)
+$tx = app->subdispatch->post_form('acshun', thing => 'nox', {hogo => 'prenut'});
+isa_ok($tx, 'Mojo::Transaction', 'subdispatch return value');
+is($tx->req->method, 'POST', 'right method');
+is($tx->req->url->path, '/x/nox/y', 'right url');
+is($tx->res->code, 200, 'right response status');
+$resd = Mojo::DOM->new($tx->res->body);
+is($resd->at('title')->text, 'yum', 'right title');
+is($resd->at('h1')->text, 'This is POST/nox!', 'right headline');
+is($resd->at('p')->text, 'hogo: prenut', 'right post data');
 
 __DATA__
 
 @@ acshun.html.ep
 % layout 'wrap';
 <h1>This is <%= "$method/$thing" %>!</h1>
+% if (defined param 'hogo') {
+<p>hogo: <%= param 'hogo' %></p>
+% }
 
 @@ layouts/wrap.html.ep
 <!doctype html>
