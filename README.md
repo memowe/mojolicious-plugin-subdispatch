@@ -3,7 +3,8 @@ Mojolicious::Plugin::Subdispatch
 
 This plugin creates a `subdispatch` helper, which helps you creating  a request
 for your actions, and returns a transaction including the response object with
-your fully rendered HTML content. It takes the same arguments as `url_for`.
+your fully rendered HTML content. It takes the request method as argument
+followed by anything you would give `url_for` to create an URL.
 
     plugin 'Subdispatch';
 
