@@ -9,7 +9,7 @@ your fully rendered HTML content. It takes the same arguments as `url_for`.
 
     [web app stuff...]
 
-    my $html = app->subdispatch('route_name', foo => 'bar')->res->body;
+    my $html = app->subdispatch(GET => 'route_name', foo => 'bar')->res->body;
 
 This is an early version and may change without warning. I'll use it to create
 static HTML pages from a Mojolicious blog, but if you find another good way
