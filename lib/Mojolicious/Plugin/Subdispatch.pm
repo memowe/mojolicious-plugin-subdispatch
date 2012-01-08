@@ -3,26 +3,49 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 our $VERSION = '0.01';
 
-# Beer. Now there’s a temporary solution.
+has app => sub { die 'not registered!' };
+
+sub _subdispatch {
+    my ($self, $method, @url_args) = @_;
+
+    # build url
+    my $url = $self->app->url_for(@url_args);
+
+    # build transaction
+    my $tx = $self->app->build_tx;
+    $tx->req->method(uc $method);
+    $tx->req->url($url);
+
+    # dispatch
+    $self->app->handler($tx);
+
+    return $tx;
+}
+
+# Mojo::UserAgent like interface
+{
+    no strict 'refs';
+    for my $name (qw(DELETE GET HEAD POST PUT)) {
+        *{__PACKAGE__ . '::' . lc($name)} = sub {
+            my $self = shift;
+            return $self->_subdispatch($name => @_);
+        };
+    }
+}
+
 sub register {
     my ($self, $app) = @_;
+    $self->app($app);
 
     # add subdispatch helper
     $app->helper(subdispatch => sub {
-        my ($s, $method, $path, @args) = @_;
+        my $s = shift;
 
-        # build url
-        my $url = $app->url_for($path, @args);
+        # Mojo::UserAgent like interface usage
+        return $self unless @_;
 
-        # build transaction
-        my $tx = $app->build_tx;
-        $tx->req->method(uc $method);
-        $tx->req->url($url);
-
-        # dispatch
-        $app->handler($tx);
-
-        return $tx;
+        # direct subdispatch call
+        return $self->_subdispatch(@_);
     });
 }
 
