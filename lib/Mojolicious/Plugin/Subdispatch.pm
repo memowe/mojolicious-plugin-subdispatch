@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::UserAgent::Transactor;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 has app         => sub { die 'not registered!' };
 has transactor  => sub { Mojo::UserAgent::Transactor->new };
@@ -60,3 +60,52 @@ sub register {
 
 1;
 __END__
+
+=head1 NAME
+
+Mojolicious::Plugin::Subdispatch - create requests to your Mojolicious actions
+
+=head1 SYNOPSIS
+
+    plugin 'Subdispatch';
+
+    [web app stuff...]
+
+    my $html = app->subdispatch->get('route_name', foo => 'bar')->body;
+
+=head1 DESCRIPTION
+
+This Mojolicious plugin creates a `subdispatch` helper, which helps you
+creating a request for your actions, and returns the response object with
+your fully rendered HTML content.
+
+The interface has some similarities to Mojo::UserAgent:
+just use your request method (DELETE, GET, HEAD, POST, PUT) as the method name
+and pass the same arguments as you would do for `url_for`:
+
+To build a post request with data, append the data hash at the end:
+
+    my $res = app->subdispatch->post('route', foo => 'bar', {with => 'data'});
+
+If you want to access the transaction object around the response, use the
+subdispatch helper with arguments like this:
+
+    my $tx = app->subdispatch(GET  => 'route', foo => 'bar');
+    my $tx = app->subdispatch(POST => 'route', foo => 'bar', {with => 'data'});
+
+This is an early version and may change without warning. I'll use it to create
+static HTML pages from a Mojolicious blog, but if you find another good way
+to use it, please let me know!
+
+=head1 REPOSITORY AND ISSUE TRACKING
+
+This plugin lives in github:
+L<http://github.com/memowe/mojolicious-plugin-subdispatch>.
+You're welcome to use github's issue tracker to report bugs or discuss the code:
+L<http://github.com/memowe/mojolicious-plugin-subdispatch/issues>
+
+=head1 AUTHOR AND LICENSE
+
+Copyright Mirko Westermeier E<lt>mail@memowe.deE<gt>
+
+Licensed under the same terms as Perl itself.
