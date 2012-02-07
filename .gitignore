@@ -9,3 +9,4 @@ Makefile*
 MANIFEST*
 !MANIFEST.SKIP
 *META.*
+Mojolicious-Plugin-Subdispatch-*.tar.gz
