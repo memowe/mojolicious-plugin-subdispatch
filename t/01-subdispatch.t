@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 45;
+use Test::More tests => 47;
 use Mojolicious::Lite;
 use Mojo::DOM;
 use FindBin '$Bin';
@@ -96,6 +96,12 @@ $resd = Mojo::DOM->new($res->body);
 is($resd->at('title')->text, 'yum', 'right title');
 is($resd->at('h1')->text, 'This is POST/nox!', 'right headline');
 is($resd->at('p')->text, 'hogo: perl', 'right post data');
+
+# with base
+plugin 'Subdispatch', base_url => 'http://foo';
+$tx = app->subdispatch(GET => 'acshun', thing => 'yay');
+isa_ok($tx, 'Mojo::Transaction', 'subdispatch return value (with base)');
+is($tx->req->url->base, 'http://foo', 'right base');
 
 __DATA__
 

@@ -3,10 +3,11 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::UserAgent::Transactor;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 has app         => sub { die 'not registered!' };
 has transactor  => sub { Mojo::UserAgent::Transactor->new };
+has 'base_url';
 
 sub _subdispatch {
     my ($self, $method, @args) = @_;
@@ -17,6 +18,7 @@ sub _subdispatch {
 
     # build request url
     my $url = $self->app->url_for(@args);
+    $url->base($self->base_url) if defined $self->base_url;
 
     # build transaction
     my $tx = $post_data ?
@@ -43,8 +45,15 @@ sub _subdispatch {
 }
 
 sub register {
-    my ($self, $app) = @_;
+    my ($self, $app, $conf) = @_;
     $self->app($app);
+
+    # does your base are belong to us?
+    if (defined $conf->{base_url}) {
+        my $base_url = $conf->{base_url};
+        $base_url = Mojo::URL->new($base_url) unless ref $base_url;
+        $self->base_url($base_url);
+    }
 
     # add subdispatch helper
     $app->helper(subdispatch => sub {
@@ -92,6 +101,11 @@ subdispatch helper with arguments like this:
 
     my $tx = app->subdispatch(GET  => 'route', foo => 'bar');
     my $tx = app->subdispatch(POST => 'route', foo => 'bar', {with => 'data'});
+
+For some reasons, it seamed important to me to be able to set the base url of
+the resulting requests, so this is possible via
+
+    plugin 'Subdispatch', base_url => 'http://example.org';
 
 This is an early version and may change without warning. I'll use it to create
 static HTML pages from a Mojolicious blog, but if you find another good way
