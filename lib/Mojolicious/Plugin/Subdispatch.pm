@@ -22,8 +22,8 @@ sub _subdispatch {
 
     # build transaction
     my $tx = $post_data ?
-        $self->transactor->form($url, $post_data)
-        : $self->transactor->tx($method, $url);
+        $self->transactor->tx($method => $url => form => $post_data)
+        : $self->transactor->tx($method => $url);
 
     # dispatch
     $self->app->handler($tx);
