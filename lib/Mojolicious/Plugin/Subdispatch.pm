@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::UserAgent::Transactor;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 has app         => sub { die 'not registered!' };
 has transactor  => sub { Mojo::UserAgent::Transactor->new };
